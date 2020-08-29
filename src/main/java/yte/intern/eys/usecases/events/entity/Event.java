@@ -1,47 +1,42 @@
 package yte.intern.eys.usecases.events.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.FutureOrPresent;
+import lombok.Getter;
+import lombok.Setter;
+import yte.intern.eys.usecases.common.entity.BaseEntity;
+import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Event {
-    @Id
-    @GeneratedValue
-    private Long id;
+@Getter
+@Setter
+@SequenceGenerator(name = "idgen", sequenceName = "EVENT_SEQ")
+public class Event extends BaseEntity {
 
-    @NotBlank(message = "Event Name must be given")
-    private String eventName;
-    @FutureOrPresent
+    @Column(name = "NAME")
+    private String name;
+
+    @Column(name = "START_DATE")
     private LocalDate startDate;
-    @FutureOrPresent
+
+    @Column(name = "END_DATE")
     private LocalDate endDate;
-    @NotNull(message = "A maximum number of participants must be specified")
+
+    @Column(name = "QUOTA")
     private Integer quota;
-    @NotNull(message = "Please give the altitude of the geographical location of the event")
+
+    @Column(name = "ALTITUDE")
     private Double altitude;
-    @NotNull(message = "Please give the longitude of the geographical location of the event")
+
+    @Column(name = "LONGITUDE")
     private Double longitude;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "EVENT_ID")
+    private Set<FormQuestion> formQuestions;
 
-    @AssertTrue
-    public boolean isEndDateValid() {
-        return (endDate.isAfter(startDate) || endDate.equals(startDate) );
-    }
-
-
-
-
-
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "EVENT_ID")
+    private Set<FormSubmission> formSubmissions;
 }
+
