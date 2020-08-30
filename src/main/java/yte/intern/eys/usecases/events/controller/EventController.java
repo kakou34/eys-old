@@ -6,11 +6,16 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import yte.intern.eys.usecases.common.dto.MessageResponse;
 import yte.intern.eys.usecases.events.dto.EventDTO;
+import yte.intern.eys.usecases.events.dto.FormQuestionDTO;
 import yte.intern.eys.usecases.events.entity.Event;
+import yte.intern.eys.usecases.events.entity.FormQuestion;
 import yte.intern.eys.usecases.events.mapper.EventMapper;
+import yte.intern.eys.usecases.events.mapper.FormQuestionMapper;
 import yte.intern.eys.usecases.events.service.EventService;
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +25,7 @@ public class EventController {
 
     private final EventService eventService;
     private final EventMapper eventMapper;
+    private final FormQuestionMapper formQuestionMapper;
 
     @GetMapping
     public List<EventDTO> listAllEvents() {
@@ -51,6 +57,25 @@ public class EventController {
     @DeleteMapping("/{eventID}")
     public MessageResponse deleteEvent(@PathVariable(value="eventID") Long id) {
         return eventService.deleteEvent(id);
+    }
+
+    //Handle making custom application forms for events
+
+
+    @GetMapping("/{eventID}/questions")
+    public List<FormQuestionDTO> getEventsFormQuestions(@PathVariable(value = "eventID") Long id) {
+        Set<FormQuestion> formQuestions = eventService.getEventsFormQuestions(id);
+        return formQuestionMapper.mapToDto(new ArrayList<>(formQuestions));
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/{eventID}/questions")
+    public MessageResponse addQuestionToEvent(@PathVariable(value = "eventID") Long id, @RequestBody @Valid FormQuestionDTO formQuestionDTO) {
+        return eventService.addFormQuestionToEvent(id, formQuestionMapper.mapToEntity(formQuestionDTO));
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{eventID}/questions/{questionID}")
+    public MessageResponse deleteFormQuestionFromEvent(@PathVariable(value = "eventID") Long eventID, @PathVariable(value = "questionID") Long questionID) {
+        return eventService.deleteQuestion(eventID, questionID);
     }
 
 }

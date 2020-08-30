@@ -4,12 +4,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import yte.intern.eys.usecases.common.dto.MessageResponse;
 import yte.intern.eys.usecases.events.entity.Event;
+import yte.intern.eys.usecases.events.entity.FormQuestion;
 import yte.intern.eys.usecases.events.repository.EventRepository;
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-
+import java.util.Set;
+import static java.util.stream.Collectors.toSet;
 import static yte.intern.eys.usecases.common.enums.MessageType.ERROR;
 import static yte.intern.eys.usecases.common.enums.MessageType.SUCCESS;
 
@@ -69,5 +71,52 @@ public class EventService {
         } else {
             return new MessageResponse(String.format("Event with ID %s can't be found!", id), ERROR);
         }
+    }
+
+    // Managing Event Application form's questions:
+
+    public Set<FormQuestion> getEventsFormQuestions(Long id) {
+        return eventRepository.findById(id).map(Event::getFormQuestions)
+                .orElseThrow(EntityNotFoundException::new);
+    }
+
+    public MessageResponse addFormQuestionToEvent(Long id, FormQuestion formQuestion) {
+        Optional<Event> eventOptional = eventRepository.findById(id);
+        if (eventOptional.isPresent()) {
+            Event event = eventOptional.get();
+            Set<FormQuestion> formQuestions = event.getFormQuestions();
+
+            formQuestions.add(formQuestion);
+            return new MessageResponse("The question has successfully been added!", SUCCESS);
+
+        } else {
+            return new MessageResponse(String.format("Event with id %s can't be found!", id), ERROR);
+        }
+    }
+
+
+    public MessageResponse deleteQuestion(Long eventID, Long questionID) {
+
+        Optional<Event> eventOptional = eventRepository.findById(eventID);
+        if (eventOptional.isPresent()) {
+            Event event = eventOptional.get();
+            if(!event.hasFormQuestion(questionID)) {
+                return new MessageResponse(String.format("Event with ID %s doesn't have question with ID %s!", eventID, questionID),ERROR);
+            }
+            removeQuestionFromEvent(questionID, event);
+            eventRepository.save(event);
+            return new MessageResponse(String.format("The question has been deleted successfylly!"), SUCCESS);
+        }
+        return new MessageResponse(String.format("Event with ID %s can't be found!", eventID), ERROR);
+    }
+
+    private void removeQuestionFromEvent(Long questionID, Event event) {
+        Set<FormQuestion> filteredFormQuestions = event.getFormQuestions()
+                .stream()
+                .filter(it -> !it.getId().equals(questionID))
+                .collect(toSet());
+
+        event.getFormQuestions().clear();
+        event.getFormQuestions().addAll(filteredFormQuestions);
     }
 }

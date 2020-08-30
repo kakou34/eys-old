@@ -38,5 +38,9 @@ public class Event extends BaseEntity {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "EVENT_ID")
     private Set<FormSubmission> formSubmissions;
+
+    public boolean hasFormQuestion(Long questionID) {
+        return formQuestions.stream().anyMatch(it -> it.getId().equals(questionID));
+    }
 }
 

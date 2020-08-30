@@ -16,4 +16,6 @@ public class FormSubmission extends BaseEntity {
     @Column(name = "CHECKIN")
     private Boolean checkIn;
 
+
+
 }
