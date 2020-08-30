@@ -23,18 +23,21 @@ public class EventService {
         return eventRepository.findAll();
     }
 
-    public Event getEventByID(Long id) {
-        return eventRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+    public Event getEventByName(String name) {
+        return eventRepository.findByName(name).orElseThrow(EntityNotFoundException::new);
     }
 
     public MessageResponse addEvent(Event event) {
-       eventRepository.save(event);
+        if(eventRepository.existsByName(event.getName())) {
+            return new MessageResponse("An event with this name already exists!", ERROR);
+        }
+        eventRepository.save(event);
         return new MessageResponse("Event has been added successfully!", SUCCESS);
     }
 
     @Transactional
-    public MessageResponse updateEvent(Long id, Event event) {
-        Optional<Event> eventOptional = eventRepository.findById(id);
+    public MessageResponse updateEvent(String name, Event event) {
+        Optional<Event> eventOptional = eventRepository.findByName(name);
         if (eventOptional.isPresent()) {
             Event eventFromDB = eventOptional.get();
             if(eventFromDB.getStartDate().isBefore(LocalDate.now())) {
@@ -42,10 +45,10 @@ public class EventService {
             } else {
             updateEventFromDB(event, eventFromDB);
             eventRepository.save(eventFromDB);
-            return new MessageResponse(String.format("Event with ID %s has been updated successfully!", id), SUCCESS);
+            return new MessageResponse(String.format("Event with name %s has been updated successfully!", name), SUCCESS);
             }
         } else {
-            return new MessageResponse(String.format("Event with ID %s can't be found!", id), ERROR);
+            return new MessageResponse(String.format("Event with name %s can't be found!", name), ERROR);
         }
     }
 
@@ -58,30 +61,30 @@ public class EventService {
         eventFromDB.setLongitude(event.getLongitude());
     }
 
-    public MessageResponse deleteEvent(Long id) {
-        Optional<Event> eventOptional = eventRepository.findById(id);
+    public MessageResponse deleteEvent(String name) {
+        Optional<Event> eventOptional = eventRepository.findByName(name);
         if (eventOptional.isPresent()) {
             Event eventFromDB = eventOptional.get();
             if(eventFromDB.getStartDate().isBefore(LocalDate.now())) {
                 return new MessageResponse("You cannot delete an event after its start date", ERROR);
             } else {
-                eventRepository.deleteById(id);
+                eventRepository.deleteByName(name);
                 return new MessageResponse("Event has been deleted successfully!", SUCCESS);
             }
         } else {
-            return new MessageResponse(String.format("Event with ID %s can't be found!", id), ERROR);
+            return new MessageResponse(String.format("Event with name %s can't be found!", name), ERROR);
         }
     }
 
     // Managing Event Application form's questions:
 
-    public Set<FormQuestion> getEventsFormQuestions(Long id) {
-        return eventRepository.findById(id).map(Event::getFormQuestions)
+    public Set<FormQuestion> getEventsFormQuestions(String name) {
+        return eventRepository.findByName(name).map(Event::getFormQuestions)
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public MessageResponse addFormQuestionToEvent(Long id, FormQuestion formQuestion) {
-        Optional<Event> eventOptional = eventRepository.findById(id);
+    public MessageResponse addFormQuestionToEvent(String name, FormQuestion formQuestion) {
+        Optional<Event> eventOptional = eventRepository.findByName( name);
         if (eventOptional.isPresent()) {
             Event event = eventOptional.get();
             Set<FormQuestion> formQuestions = event.getFormQuestions();
@@ -90,30 +93,30 @@ public class EventService {
             return new MessageResponse("The question has successfully been added!", SUCCESS);
 
         } else {
-            return new MessageResponse(String.format("Event with id %s can't be found!", id), ERROR);
+            return new MessageResponse(String.format("Event with name %s can't be found!", name), ERROR);
         }
     }
 
 
-    public MessageResponse deleteQuestion(Long eventID, Long questionID) {
+    public MessageResponse deleteQuestion(String eventName, String question) {
 
-        Optional<Event> eventOptional = eventRepository.findById(eventID);
+        Optional<Event> eventOptional = eventRepository.findByName(eventName);
         if (eventOptional.isPresent()) {
             Event event = eventOptional.get();
-            if(!event.hasFormQuestion(questionID)) {
-                return new MessageResponse(String.format("Event with ID %s doesn't have question with ID %s!", eventID, questionID),ERROR);
+            if(!event.hasFormQuestion(question)) {
+                return new MessageResponse(String.format("Event with Name %s doesn't have question: %s!", eventName, question),ERROR);
             }
-            removeQuestionFromEvent(questionID, event);
+            removeQuestionFromEvent(question, event);
             eventRepository.save(event);
-            return new MessageResponse(String.format("The question has been deleted successfylly!"), SUCCESS);
+            return new MessageResponse("The question has been deleted successfylly!", SUCCESS);
         }
-        return new MessageResponse(String.format("Event with ID %s can't be found!", eventID), ERROR);
+        return new MessageResponse(String.format("Event %s can't be found!", eventName), ERROR);
     }
 
-    private void removeQuestionFromEvent(Long questionID, Event event) {
+    private void removeQuestionFromEvent(String question, Event event) {
         Set<FormQuestion> filteredFormQuestions = event.getFormQuestions()
                 .stream()
-                .filter(it -> !it.getId().equals(questionID))
+                .filter(it -> !it.getQuestion().equals(question))
                 .collect(toSet());
 
         event.getFormQuestions().clear();

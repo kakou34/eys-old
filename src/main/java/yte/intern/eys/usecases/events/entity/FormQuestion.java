@@ -11,7 +11,7 @@ import java.util.Set;
 @SequenceGenerator(name = "idgen", sequenceName = "FQUES_SEQ")
 public class FormQuestion extends BaseEntity {
 
-    @Column(name = "QUESTION")
+    @Column(name = "QUESTION", unique = true)
     private String question;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)

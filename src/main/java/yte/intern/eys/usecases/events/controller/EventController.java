@@ -33,9 +33,9 @@ public class EventController {
         return eventMapper.mapToDto(events);
     }
 
-    @GetMapping("/{eventID}")
-    public EventDTO getEventById(@PathVariable(value="eventID") Long id) {
-        Event event = eventService.getEventByID(id);
+    @GetMapping("/{eventName}")
+    public EventDTO getEventByName(@PathVariable(value= "eventName") String eventName) {
+        Event event = eventService.getEventByName(eventName);
         return eventMapper.mapToDto(event);
     }
 
@@ -47,35 +47,33 @@ public class EventController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{eventID}")
-    public MessageResponse updateEvent(@PathVariable(value="eventID") Long id, @Valid @RequestBody EventDTO eventDTO) {
+    @PutMapping("/{eventName}")
+    public MessageResponse updateEvent(@PathVariable(value="eventName") String name, @Valid @RequestBody EventDTO eventDTO) {
         Event event = eventMapper.mapToEntity(eventDTO);
-        return eventService.updateEvent(id, event);
+        return eventService.updateEvent(name, event);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{eventID}")
-    public MessageResponse deleteEvent(@PathVariable(value="eventID") Long id) {
-        return eventService.deleteEvent(id);
+    @DeleteMapping("/{eventName}")
+    public MessageResponse deleteEvent(@PathVariable(value="eventName") String name) {
+        return eventService.deleteEvent(name);
     }
 
     //Handle making custom application forms for events
-
-
-    @GetMapping("/{eventID}/questions")
-    public List<FormQuestionDTO> getEventsFormQuestions(@PathVariable(value = "eventID") Long id) {
-        Set<FormQuestion> formQuestions = eventService.getEventsFormQuestions(id);
+    @GetMapping("/{eventName}/questions")
+    public List<FormQuestionDTO> getEventsFormQuestions(@PathVariable(value = "eventName") String name) {
+        Set<FormQuestion> formQuestions = eventService.getEventsFormQuestions(name);
         return formQuestionMapper.mapToDto(new ArrayList<>(formQuestions));
     }
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/{eventID}/questions")
-    public MessageResponse addQuestionToEvent(@PathVariable(value = "eventID") Long id, @RequestBody @Valid FormQuestionDTO formQuestionDTO) {
-        return eventService.addFormQuestionToEvent(id, formQuestionMapper.mapToEntity(formQuestionDTO));
+    @PostMapping("/{eventName}/questions")
+    public MessageResponse addQuestionToEvent(@PathVariable(value = "eventName") String name, @RequestBody @Valid FormQuestionDTO formQuestionDTO) {
+        return eventService.addFormQuestionToEvent(name, formQuestionMapper.mapToEntity(formQuestionDTO));
     }
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{eventID}/questions/{questionID}")
-    public MessageResponse deleteFormQuestionFromEvent(@PathVariable(value = "eventID") Long eventID, @PathVariable(value = "questionID") Long questionID) {
-        return eventService.deleteQuestion(eventID, questionID);
+    @DeleteMapping("/{eventName}/questions/{question}")
+    public MessageResponse deleteFormQuestionFromEvent(@PathVariable(value = "eventName") String eventName, @PathVariable(value = "question") String question) {
+        return eventService.deleteQuestion(eventName, question);
     }
 
 }

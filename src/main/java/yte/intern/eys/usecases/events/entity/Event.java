@@ -13,7 +13,7 @@ import java.util.Set;
 @SequenceGenerator(name = "idgen", sequenceName = "EVENT_SEQ")
 public class Event extends BaseEntity {
 
-    @Column(name = "NAME")
+    @Column(name = "NAME", unique = true)
     private String name;
 
     @Column(name = "START_DATE")
@@ -39,8 +39,10 @@ public class Event extends BaseEntity {
     @JoinColumn(name = "EVENT_ID")
     private Set<FormSubmission> formSubmissions;
 
-    public boolean hasFormQuestion(Long questionID) {
-        return formQuestions.stream().anyMatch(it -> it.getId().equals(questionID));
+    public boolean hasFormQuestion(String question) {
+        return formQuestions.stream().anyMatch(it -> it.getQuestion().equals(question));
     }
+
+
 }
 

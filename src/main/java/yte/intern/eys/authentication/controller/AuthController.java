@@ -2,6 +2,7 @@ package yte.intern.eys.authentication.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -79,6 +80,7 @@ public class AuthController {
         return userService.addUser(signUpRequest);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/addAdmin")
     public ResponseEntity<?> registerAdmin(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
