@@ -14,6 +14,9 @@ public class FormQuestion extends BaseEntity {
     @Column(name = "QUESTION", unique = true)
     private String question;
 
+    @ManyToOne
+    private Event event;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "QUESTION_ID")
     private Set<FormAnswer> formAnswers;

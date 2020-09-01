@@ -6,6 +6,8 @@ import yte.intern.eys.usecases.common.dto.MessageResponse;
 import yte.intern.eys.usecases.events.entity.Event;
 import yte.intern.eys.usecases.events.entity.FormQuestion;
 import yte.intern.eys.usecases.events.repository.EventRepository;
+import yte.intern.eys.usecases.events.repository.FormQuestionRepository;
+
 import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
@@ -19,6 +21,7 @@ import static yte.intern.eys.usecases.common.enums.MessageType.SUCCESS;
 @RequiredArgsConstructor
 public class EventService {
     private final EventRepository eventRepository;
+    private final FormQuestionRepository formQuestionRepository;
     public List<Event> listAllEvents() {
         return eventRepository.findAll();
     }
@@ -83,23 +86,22 @@ public class EventService {
                 .orElseThrow(EntityNotFoundException::new);
     }
 
-    public MessageResponse addFormQuestionToEvent(String name, FormQuestion formQuestion) {
-        Optional<Event> eventOptional = eventRepository.findByName( name);
+    public MessageResponse addFormQuestionToEvent(String eventName, FormQuestion formQuestion) {
+        Optional<Event> eventOptional = eventRepository.findByName(eventName);
         if (eventOptional.isPresent()) {
             Event event = eventOptional.get();
-            Set<FormQuestion> formQuestions = event.getFormQuestions();
-
-            formQuestions.add(formQuestion);
-            return new MessageResponse("The question has successfully been added!", SUCCESS);
-
+            if (event.hasFormQuestion(formQuestion.getQuestion())) {
+                return new MessageResponse("This question already exists", ERROR);
+            }
+            formQuestion.setEvent(event);
+            formQuestionRepository.save(formQuestion);
+            return new MessageResponse("The question has been successfully added", SUCCESS);
         } else {
-            return new MessageResponse(String.format("Event with name %s can't be found!", name), ERROR);
+            return new MessageResponse(String.format("Event - %s - can't be found!", eventName), ERROR);
         }
     }
 
-
     public MessageResponse deleteQuestion(String eventName, String question) {
-
         Optional<Event> eventOptional = eventRepository.findByName(eventName);
         if (eventOptional.isPresent()) {
             Event event = eventOptional.get();
@@ -108,7 +110,7 @@ public class EventService {
             }
             removeQuestionFromEvent(question, event);
             eventRepository.save(event);
-            return new MessageResponse("The question has been deleted successfylly!", SUCCESS);
+            return new MessageResponse("The question has been deleted successfully!", SUCCESS);
         }
         return new MessageResponse(String.format("Event %s can't be found!", eventName), ERROR);
     }
