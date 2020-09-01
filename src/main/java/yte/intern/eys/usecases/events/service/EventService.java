@@ -22,8 +22,13 @@ import static yte.intern.eys.usecases.common.enums.MessageType.SUCCESS;
 public class EventService {
     private final EventRepository eventRepository;
     private final FormQuestionRepository formQuestionRepository;
-    public List<Event> listAllEvents() {
-        return eventRepository.findAll();
+    public List<Event> listNextEvents() {
+        LocalDate today = LocalDate.now();
+        return eventRepository.findByStartDateAfter(today);
+    }
+    public List<Event> listOldEvents() {
+        LocalDate today = LocalDate.now();
+        return eventRepository.findByStartDateBefore(today);
     }
 
     public Event getEventByName(String name) {

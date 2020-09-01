@@ -31,7 +31,7 @@ public class Event extends BaseEntity {
     @Column(name = "LONGITUDE")
     private Double longitude;
 
-    @OneToMany(mappedBy="event")
+    @OneToMany(mappedBy="event", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FormQuestion> formQuestions;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
