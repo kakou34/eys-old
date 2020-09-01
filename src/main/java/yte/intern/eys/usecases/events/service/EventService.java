@@ -95,6 +95,7 @@ public class EventService {
             }
             formQuestion.setEvent(event);
             formQuestionRepository.save(formQuestion);
+
             return new MessageResponse("The question has been successfully added", SUCCESS);
         } else {
             return new MessageResponse(String.format("Event - %s - can't be found!", eventName), ERROR);
@@ -102,26 +103,14 @@ public class EventService {
     }
 
     public MessageResponse deleteQuestion(String eventName, String question) {
-        Optional<Event> eventOptional = eventRepository.findByName(eventName);
-        if (eventOptional.isPresent()) {
-            Event event = eventOptional.get();
-            if(!event.hasFormQuestion(question)) {
-                return new MessageResponse(String.format("Event with Name %s doesn't have question: %s!", eventName, question),ERROR);
-            }
-            removeQuestionFromEvent(question, event);
-            eventRepository.save(event);
+        Optional<FormQuestion> formQuestionOptional = formQuestionRepository.findByQuestion(question);
+        if (formQuestionOptional.isPresent()) {
+            FormQuestion formQuestion = formQuestionOptional.get();
+            formQuestionRepository.delete(formQuestion);
             return new MessageResponse("The question has been deleted successfully!", SUCCESS);
         }
-        return new MessageResponse(String.format("Event %s can't be found!", eventName), ERROR);
+        return new MessageResponse(String.format("Question %s can't be found!", question), ERROR);
     }
 
-    private void removeQuestionFromEvent(String question, Event event) {
-        Set<FormQuestion> filteredFormQuestions = event.getFormQuestions()
-                .stream()
-                .filter(it -> !it.getQuestion().equals(question))
-                .collect(toSet());
 
-        event.getFormQuestions().clear();
-        event.getFormQuestions().addAll(filteredFormQuestions);
-    }
 }

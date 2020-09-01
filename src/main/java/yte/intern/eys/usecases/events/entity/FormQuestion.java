@@ -11,10 +11,11 @@ import java.util.Set;
 @SequenceGenerator(name = "idgen", sequenceName = "FQUES_SEQ")
 public class FormQuestion extends BaseEntity {
 
-    @Column(name = "QUESTION", unique = true)
+    @Column(name = "QUESTION")
     private String question;
 
     @ManyToOne
+    @JoinColumn(name="EVENT_ID", nullable=false)
     private Event event;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
